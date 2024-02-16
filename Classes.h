@@ -261,3 +261,276 @@ public:
         file.close();
     }
 };
+
+class Student : public Person
+{
+public:
+    bool signup()
+    {
+        string name;
+        string password;
+        cout << "Enter your name: ";
+        cin >> name;
+        cout << "Enter your password: ";
+        cin >> password;
+
+        bool student_exists = check_user(name, password, "students.txt");
+        if (student_exists)
+        {
+            cout << "Sorry, such student already exists!";
+        }
+        else
+        {
+            save_user(name, password, "students.txt");
+            cout << "Student successfully created!" << endl;
+        }
+
+        return !student_exists;
+    }
+
+    bool login()
+    {
+        string name;
+        string password;
+        cout << "Enter your name: ";
+        cin >> name;
+        cout << "Enter your password: ";
+        cin >> password;
+
+        bool is_user_valid = check_user(name, password, "students.txt");
+
+        if (is_user_valid)
+        {
+            set_name(name);
+            set_password(password);
+            cout << "Successfully logged in!" << endl;
+        }
+        else
+        {
+            clear();
+            cout << "* Invalid credentials! *" << endl;
+        }
+
+        return is_user_valid;
+    }
+
+    void showTests()
+    {
+        ifstream file("test.txt");
+        ofstream answersFile("testAnswers.txt", ios::app);
+
+        string line;
+        string tests_found[10] = {};
+        int tests_found_num = 0;
+        while (getline(file, line))
+        {
+            string query = "Test name: ";
+            if (line.find(query) != string::npos)
+            {
+                string test_name = line.substr(query.size());
+                tests_found[tests_found_num] = test_name;
+                tests_found_num += 1;
+            }
+        }
+
+        file.clear();
+        file.seekg(0);
+
+        cout << "Choose a test: " << endl;
+        int choosen_test_num;
+        for (int i = 0; i < tests_found_num; i++)
+        {
+            cout << " " << i << ". " << tests_found[i] << endl;
+        }
+        cout << ">";
+        cin >> choosen_test_num;
+        string choosen_test_name = tests_found[choosen_test_num];
+        int available_points = 0;
+        int points = 0;
+
+        while (getline(file, line))
+        {
+            string query = "Test name: ";
+            if (line.find(query) != string::npos)
+            {
+                string test_name = line.substr(query.size());
+                if (test_name == choosen_test_name)
+                {
+                    cout << test_name << endl
+                         << choosen_test_name << endl;
+                    string in_line;
+                    string correct_answer;
+                    string answer;
+                    int answer_num = 0;
+                    while (getline(file, in_line))
+                    {
+                        string correct_answer_query = "Correct Answer: ";
+                        if (in_line.find(correct_answer_query) != string::npos)
+                        {
+                            correct_answer = in_line.substr(correct_answer_query.size());
+                            cout << "Write your answer: ";
+                            cin >> answer;
+                            if (answer == correct_answer)
+                            {
+                                points += 1;
+                            }
+                            available_points += 1;
+
+                            cout << "Answer recorded!" << endl;
+                        }
+                        else if (in_line.find("---") != string::npos)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cout << in_line << endl;
+                        }
+                    }
+                }
+            }
+        }
+
+        answersFile << "Name: " << Person::get_name() << endl;
+        answersFile << "Test name: " << choosen_test_name << endl;
+        answersFile << "Points: " << points << "/" << available_points << endl
+                    << "---" << endl;
+
+        answersFile.close();
+        file.close();
+    }
+
+    void showEssays()
+    {
+        ifstream essay_file("essay.txt");
+        ofstream essay_answers_file("essayAnswers.txt", ios::app);
+
+        string line;
+
+        essay_file.clear();
+        essay_file.seekg(0);
+
+        string essays_found[5][5] = {};
+        int essays_found_num = 0;
+
+        while (getline(essay_file, line))
+        {
+            string question_query = "Essay question: ";
+            string size_query = "Minimum size: ";
+
+            if (line.find(question_query) != string::npos)
+            {
+                string question = line.substr(question_query.size());
+                essays_found[essays_found_num][0] = question;
+                essays_found_num += 1;
+            }
+            else if (line.find(size_query) != string::npos)
+            {
+                string size = line.substr(size_query.size());
+                essays_found[essays_found_num - 1][1] = size;
+            }
+        }
+
+        essay_file.clear();
+        essay_file.seekg(0);
+
+        cout << "Choose an essay: " << endl;
+        int choosen_essay_num;
+        for (int i = 0; i < sizeof(essays_found) / sizeof(essays_found[0]); i++)
+        {
+            cout << " " << i << ". " << essays_found[i][0] << endl;
+        }
+        cout << ">";
+        cin >> choosen_essay_num;
+        string choosen_essay[2];
+        choosen_essay[0] = essays_found[choosen_essay_num][0];
+        choosen_essay[1] = essays_found[choosen_essay_num][1];
+
+    essay_start:
+        string essay_text;
+        string comment;
+        cout << "Write an essay (At least " << stoi(choosen_essay[1]) << " characters): " << endl;
+        cin.ignore();
+        getline(cin, essay_text);
+        cout << "Comments: ";
+        cin.ignore();
+        getline(cin, comment);
+        if (essay_text.size() < stoi(choosen_essay[1]))
+        {
+            cout << "Essay myst be at least " << choosen_essay[1] << " characters!" << endl;
+            goto essay_start;
+        }
+        else
+        {
+            essay_answers_file << "Name: " << Person::get_name() << endl;
+            essay_answers_file << "Answer: " << essay_text << endl;
+            essay_answers_file << "Comment: " << comment << endl
+                               << "---" << endl;
+
+            cout << "Answer recorded!" << endl;
+        }
+
+        essay_file.close();
+        essay_answers_file.close();
+    }
+
+    void showSubjective()
+    {
+        ifstream subjective_file("subjective.txt");
+        ofstream subjective_answers_file("subjectiveAnswers.txt", ios::app);
+
+        string subjectives_found[5] = {};
+        int subjectives_found_num = 0;
+
+        string line;
+        while (getline(subjective_file, line))
+        {
+            string question_query = "Question: ";
+
+            if (line.find(question_query) != string::npos)
+            {
+                string question = line.substr(question_query.size());
+                subjectives_found[subjectives_found_num] = question;
+                subjectives_found_num += 1;
+            }
+        }
+
+        subjective_file.clear();
+        subjective_file.seekg(0);
+
+        cout << "Choose a question: " << endl;
+        int choosen_question_num;
+        for (int i = 0; i < sizeof(subjectives_found) / sizeof(subjectives_found[0]); i++)
+        {
+            if (subjectives_found[i].size() == 0)
+            {
+                break;
+            }
+            cout << " " << i << ". " << subjectives_found[i] << endl;
+        }
+        cout << ">";
+        cin >> choosen_question_num;
+
+    question_start:
+        string answer;
+        cout << "Write an answer: ";
+        cin.ignore();
+        getline(cin, answer);
+        if (answer.size() == 0)
+        {
+            cout << "Answer cannot be empty!" << endl;
+            goto question_start;
+        }
+        else
+        {
+            subjective_answers_file << "Name: " << Person::get_name() << endl;
+            subjective_answers_file << "Question: " << subjectives_found[choosen_question_num] << endl;
+            subjective_answers_file << "Answer: " << answer << endl
+                                    << "---" << endl;
+            cout << "Answer recorded!" << endl;
+        }
+
+        subjective_file.close();
+        subjective_answers_file.close();
+    }
+};
