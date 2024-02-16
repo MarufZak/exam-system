@@ -1,5 +1,3 @@
-# Project Documentation
-
 ## Overview
 
 This project is minimal application of exam system, which is designed for both students and teachers, with login and sign-up functionalities for both. It allows teachers to make various types of tests and essays, students to submit them, and teachers to review the submissions. The system supports:
